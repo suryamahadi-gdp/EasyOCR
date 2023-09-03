@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from .modules import ResNet_FeatureExtractor, BidirectionalLSTM
 
@@ -33,3 +34,32 @@ class Model(nn.Module):
         prediction = self.Prediction(contextual_feature.contiguous())
 
         return prediction
+    
+    def create_sample_input(self):
+        return torch.rand((1, 1, 64, 320))
+    
+    def export_to_onnx(self, output: str, opset_version: int = 11, verbose=False):
+        # create sample input
+        sample_input = self.create_sample_input()
+
+        # export
+        torch.onnx.export(
+            self, 
+            sample_input, 
+            f=output, 
+            do_constant_folding=True,
+            verbose=verbose, 
+            opset_version=opset_version, 
+            input_names=['input'], 
+            output_names=['output'],
+            dynamic_axes={
+                'input': {
+                    0: 'batch_size',
+                    3: 'width'
+                },
+                'output': {
+                    0: 'batch_size',
+                    2: 'width'
+                }
+            }
+        )

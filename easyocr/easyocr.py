@@ -16,6 +16,7 @@ from PIL import Image
 from logging import getLogger
 import yaml
 import json
+import os
 
 if sys.version_info[0] == 2:
     from io import open
@@ -573,3 +574,10 @@ class Reader(object):
                                             filter_ths, y_ths, x_ths, False, output_format))
 
         return result_agg
+
+    def export_to_onnx(self, output: str, opset_version: int = 11, verbose=False):
+        if not os.path.exists(output):
+            os.makedirs(output)
+
+        self.detector.export_to_onnx(os.path.join(output, 'text-detector.onnx'), opset_version, verbose)
+        self.recognizer.export_to_onnx(os.path.join(output, 'text-recognizer.onnx'), opset_version, verbose)

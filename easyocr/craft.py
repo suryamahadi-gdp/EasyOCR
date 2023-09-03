@@ -78,3 +78,39 @@ class CRAFT(nn.Module):
         y = self.conv_cls(feature)
 
         return y.permute(0,2,3,1), feature
+
+    def create_sample_input(self):
+        return torch.rand(1, 3, 480, 928)
+    
+    def export_to_onnx(self, output: str, opset_version: int = 11, verbose=False):
+        # create sample input
+        sample_input = self.create_sample_input()
+
+        # export
+        torch.onnx.export(
+            self, 
+            sample_input, 
+            f=output, 
+            do_constant_folding=True,
+            verbose=verbose, 
+            opset_version=opset_version, 
+            input_names=['input'], 
+            output_names=['output', 'feature'],
+            dynamic_axes={
+                'input': {
+                    0: 'batch_size',
+                    2: 'height',
+                    3: 'width'
+                },
+                'output': {
+                    0: 'batch_size',
+                    2: 'height',
+                    3: 'width'
+                },
+                'feature': {
+                    0: 'batch_size',
+                    2: 'height',
+                    3: 'width'
+                }
+            }
+        )
