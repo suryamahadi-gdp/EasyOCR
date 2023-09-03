@@ -35,16 +35,20 @@ class Model(nn.Module):
 
         return prediction
     
-    def create_sample_input(self):
-        return torch.rand((1, 1, 64, 320))
+    def create_sample_input(self, device):
+        return torch.rand((1, 1, 64, 320)).to(device)
     
-    def export_to_onnx(self, output: str, opset_version: int = 11, verbose=False):
+    def export_to_onnx(self, output: str, device: str, opset_version: int = 11, verbose=False):
         # create sample input
-        sample_input = self.create_sample_input()
+        sample_input = self.create_sample_input(device)
+
+        model = self
+        if device == 'cuda':
+            model = self.module
 
         # export
         torch.onnx.export(
-            self, 
+            model, 
             sample_input, 
             f=output, 
             do_constant_folding=True,

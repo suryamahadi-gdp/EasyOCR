@@ -35,17 +35,20 @@ class Model(nn.Module):
 
         return prediction
     
-    def create_sample_input(self):
-        return torch.rand((1, 1, 64, 896)).to('cuda'), torch.rand((1, 40).to('cuda'))
+    def create_sample_input(self, device):
+        return torch.rand((1, 1, 64, 896)).to(device), torch.rand((1, 40)).to(device)
     
-    def export_to_onnx(self, output: str, opset_version: int = 11, verbose=False):
+    def export_to_onnx(self, output: str, device: str, opset_version: int = 11, verbose=False):
         """
         NOTE: this function only works on CUDA, there is a bug in pytorch
         see: https://github.com/JaidedAI/EasyOCR/issues/746#issuecomment-1186319659
         """
         # create sample input
-        sample_input = self.create_sample_input()
+        sample_input = self.create_sample_input(device)
         self.eval()
+
+        if device != 'cuda':
+            raise ValueError("Only CUDA device is supported for now.")
 
         # export
         torch.onnx.export(

@@ -579,5 +579,11 @@ class Reader(object):
         if not os.path.exists(output):
             os.makedirs(output)
 
-        self.detector.export_to_onnx(os.path.join(output, 'text-detector.onnx'), opset_version, verbose)
-        self.recognizer.export_to_onnx(os.path.join(output, 'text-recognizer.onnx'), opset_version, verbose)
+        detector = self.detector
+        recognizer = self.recognizer
+        if self.device == 'cuda':
+            detector = self.detector.module
+            recognizer = self.recognizer.module
+
+        detector.export_to_onnx(os.path.join(output, 'text-detector.onnx'), self.device, opset_version, verbose)
+        recognizer.export_to_onnx(os.path.join(output, 'text-recognizer.onnx'), self.device, opset_version, verbose)
